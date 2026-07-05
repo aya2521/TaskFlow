@@ -67,3 +67,33 @@ export function validateLoginForm(email: string, password: string): LoginFormErr
 
   return errors;
 }
+import { TaskFormData } from '../types/task';
+
+export interface TaskFormErrors {
+  title?: string;
+}
+
+export function validateTaskForm(form: TaskFormData): TaskFormErrors {
+  const errors: TaskFormErrors = {};
+  if (!form.title.trim()) {
+    errors.title = 'Title is required.';
+  }
+  return errors;
+}
+import { RewardFormData } from '../types/reward';
+
+export interface RewardFormErrors {
+  title?: string;
+  cost?: string;
+}
+
+export function validateRewardForm(form: RewardFormData): RewardFormErrors {
+  const errors: RewardFormErrors = {};
+  if (!form.title.trim()) {
+    errors.title = 'Title is required.';
+  }
+  if (!Number.isFinite(form.cost) || form.cost <= 0) {
+    errors.cost = 'Cost must be a positive number.';
+  }
+  return errors;
+}

@@ -5,10 +5,12 @@ import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { RootStackParamList } from './types';
-import SplashScreen from    '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
+import AddEditTaskScreen from '../screens/AddEditTaskScreen';
+import RewardsScreen from '../screens/RewardsScreen';
+import AddEditRewardScreen from '../screens/AddEditRewardScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,10 +30,21 @@ export default function RootNavigator() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          // Logged in — only Home (and later, other app screens) is reachable
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen
+              name="AddEditTask"
+              component={AddEditTaskScreen}
+              options={{ presentation: 'modal' }}
+            />
+            <Stack.Screen name="Rewards" component={RewardsScreen} />
+            <Stack.Screen
+              name="AddEditReward"
+              component={AddEditRewardScreen}
+              options={{ presentation: 'modal' }}
+            />
+          </>
         ) : (
-          // Logged out — only auth screens are reachable
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />

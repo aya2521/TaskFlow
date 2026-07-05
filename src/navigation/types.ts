@@ -5,6 +5,9 @@ export type AuthStackParamList = {
 
 export type AppStackParamList = {
   Home: undefined;
+  AddEditTask: { taskId?: string } | undefined;
+  Rewards: undefined;
+  AddEditReward: { rewardId?: string } | undefined;
 };
 
 export type RootStackParamList = {
