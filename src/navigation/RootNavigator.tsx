@@ -11,6 +11,7 @@ import HomeScreen from '../screens/HomeScreen';
 import AddEditTaskScreen from '../screens/AddEditTaskScreen';
 import RewardsScreen from '../screens/RewardsScreen';
 import AddEditRewardScreen from '../screens/AddEditRewardScreen';
+import StatisticsScreen from '../screens/StatisticsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -37,6 +38,7 @@ export default function RootNavigator() {
               component={AddEditTaskScreen}
               options={{ presentation: 'modal' }}
             />
+            <Stack.Screen name="Statistics" component={StatisticsScreen} />
             <Stack.Screen name="Rewards" component={RewardsScreen} />
             <Stack.Screen
               name="AddEditReward"

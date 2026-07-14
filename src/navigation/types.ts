@@ -8,6 +8,7 @@ export type AppStackParamList = {
   AddEditTask: { taskId?: string } | undefined;
   Rewards: undefined;
   AddEditReward: { rewardId?: string } | undefined;
+  Statistics: undefined;
 };
 
 export type RootStackParamList = {

@@ -24,8 +24,6 @@ export default function HomeScreen({ navigation }: Props) {
   });
 
   async function handleToggle(task: Task) {
-    // Optimistic feel: Firestore's onSnapshot updates the list itself,
-    // so we just fire the request — no local state juggling needed.
     const { error: toggleError } = await toggleTaskCompletion(task.id, !task.completed);
     if (toggleError) Alert.alert('Error', toggleError);
   }
@@ -71,6 +69,9 @@ export default function HomeScreen({ navigation }: Props) {
               : `${completedCount} of ${tasks.length} completed`}
           </Text>
         </View>
+        <Pressable onPress={() => navigation.navigate('Statistics')} hitSlop={8}>
+          <Text style={{ color: theme.primary, fontWeight: '600' }}>📊 Stats</Text>
+        </Pressable>
         <Pressable onPress={() => navigation.navigate('Rewards')} style={{ marginTop: 6 }}>
           <Text style={{ color: theme.primary, fontWeight: '600' }}>🎁 Rewards</Text>
         </Pressable>
