@@ -9,6 +9,7 @@ import { Task, PRIORITY_ORDER } from '../types/task';
 import TaskCard from '../components/TaskCard';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../navigation/types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Home'>;
 
@@ -17,6 +18,7 @@ export default function HomeScreen({ navigation }: Props) {
   const { user } = useAuth();
   const { tasks, loading, error } = useTasks();
   const [loggingOut, setLoggingOut] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const sorted = [...tasks].sort((a, b) => {
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -61,26 +63,38 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={styles.header}>
         <View>
           <Text style={[styles.title, { color: theme.text }]}>
-            Welcome, {user?.displayName || 'there'}
+           Welcome, {user?.displayName || 'there'}
           </Text>
           <Text style={{ color: theme.textSecondary, marginTop: 2 }}>
             {tasks.length === 0
               ? 'No tasks yet'
               : `${completedCount} of ${tasks.length} completed`}
           </Text>
-        </View>
-        <Pressable onPress={() => navigation.navigate('Statistics')} hitSlop={8}>
-          <Text style={{ color: theme.primary, fontWeight: '600' }}>📊 Stats</Text>
-        </Pressable>
-        <Pressable onPress={() => navigation.navigate('Rewards')} style={{ marginTop: 6 }}>
-          <Text style={{ color: theme.primary, fontWeight: '600' }}>🎁 Rewards</Text>
-        </Pressable>
-        <Pressable onPress={handleLogout} disabled={loggingOut} hitSlop={8}>
+       </View>
+       <Pressable onPress={handleLogout} disabled={loggingOut} hitSlop={8}>
           {loggingOut ? (
             <ActivityIndicator color={theme.text} />
           ) : (
             <Text style={{ color: theme.textSecondary }}>Log Out</Text>
           )}
+        </Pressable>
+      </View>
+      <View style={[styles.bottomBar, { backgroundColor: theme.surface, borderColor: theme.border, paddingBottom: insets.bottom + 12}]}>
+        <Pressable onPress={() => navigation.navigate('Statistics')} style={styles.bottomBarButton} hitSlop={10}>
+          <Text style={styles.bottomBarIcon}>📊</Text>
+          <Text style={[styles.bottomBarLabel, { color: theme.textSecondary }]}>Stats</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.fab, { backgroundColor: theme.primary }]}
+          onPress={() => navigation.navigate('AddEditTask')}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </Pressable>
+
+        <Pressable onPress={() => navigation.navigate('Rewards')} style={styles.bottomBarButton} hitSlop={10}>
+          <Text style={styles.bottomBarIcon}>🎁</Text>
+          <Text style={[styles.bottomBarLabel, { color: theme.textSecondary }]}>Rewards</Text>
         </Pressable>
       </View>
 
@@ -92,7 +106,7 @@ export default function HomeScreen({ navigation }: Props) {
         <FlatList
           data={sorted}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 140 }}
           renderItem={({ item }) => (
             <TaskCard task={item} onToggle={handleToggle} onPress={handlePress} onDelete={handleDelete}/>
           )}
@@ -123,10 +137,21 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   title: { fontSize: 22, fontWeight: '700' },
   errorText: { color: '#EF4444', textAlign: 'center', marginTop: 40 },
-  fab: {
+  bottomBar: {
     position: 'absolute',
-    right: 24,
-    bottom: 32,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    paddingTop: 12,
+  },
+  bottomBarButton: { alignItems: 'center', width: 64 },
+  bottomBarIcon: { fontSize: 22 },
+  bottomBarLabel: { fontSize: 11, marginTop: 2 },
+  fab: {
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -137,7 +162,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
+    marginTop: -20, // lifts the + button slightly above the bar's row
   },
   fabText: { color: '#fff', fontSize: 28, lineHeight: 30 },
-
 });
