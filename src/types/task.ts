@@ -10,6 +10,7 @@ export interface Task {
   priority: TaskPriority;
   completed: boolean;
   dueDate: string | null;   // ISO string, or null for no due date
+  notificationIds: string[]; 
   createdAt: string;        // ISO string
   updatedAt: string;        // ISO string
 }

@@ -26,7 +26,7 @@ export default function HomeScreen({ navigation }: Props) {
   });
 
   async function handleToggle(task: Task) {
-    const { error: toggleError } = await toggleTaskCompletion(task.id, !task.completed);
+    const { error: toggleError } = await toggleTaskCompletion(task.id, !task.completed, task.notificationIds);
     if (toggleError) Alert.alert('Error', toggleError);
   }
 
@@ -43,7 +43,7 @@ export default function HomeScreen({ navigation }: Props) {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          const { error: deleteError } = await deleteTask(task.id);
+          const { error: deleteError } = await deleteTask(task.id, task.notificationIds);
           if (deleteError) Alert.alert('Error', deleteError);
         },
       },

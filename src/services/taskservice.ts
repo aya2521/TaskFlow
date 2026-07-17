@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Task, TaskFormData } from '../types/task';
+import { scheduleTaskReminders, cancelTaskReminders } from './notificationService';
 
 const TASKS_COLLECTION = 'tasks';
 
@@ -29,6 +30,7 @@ function toTask(id: string, data: any): Task {
     priority: data.priority,
     completed: data.completed ?? false,
     dueDate: data.dueDate ?? null,
+    notificationIds: data.notificationIds ?? [],
     createdAt: (data.createdAt as Timestamp)?.toDate?.().toISOString() ?? new Date().toISOString(),
     updatedAt: (data.updatedAt as Timestamp)?.toDate?.().toISOString() ?? new Date().toISOString(),
   };
@@ -62,7 +64,7 @@ export function subscribeToTasks(
 
 export async function createTask(userId: string, form: TaskFormData): Promise<{ error: string | null }> {
   try {
-    await addDoc(collection(db, TASKS_COLLECTION), {
+    const docRef = await addDoc(collection(db, TASKS_COLLECTION), {
       userId,
       title: form.title.trim(),
       description: form.description.trim(),
@@ -70,9 +72,31 @@ export async function createTask(userId: string, form: TaskFormData): Promise<{ 
       priority: form.priority,
       dueDate: form.dueDate,
       completed: false,
+      notificationIds: [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    // Schedule reminders after creation, since we need the real task
+    // shape (and this keeps notification logic out of the write itself).
+    const ids = await scheduleTaskReminders({
+      id: docRef.id,
+      userId,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      frequency: form.frequency,
+      priority: form.priority,
+      dueDate: form.dueDate,
+      completed: false,
+      notificationIds: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (ids.length > 0) {
+      await updateDoc(docRef, { notificationIds: ids });
+    }
+
     return { error: null };
   } catch (err) {
     console.error('createTask error:', err);
@@ -80,14 +104,36 @@ export async function createTask(userId: string, form: TaskFormData): Promise<{ 
   }
 }
 
-export async function updateTask(taskId: string, form: TaskFormData): Promise<{ error: string | null }> {
+export async function updateTask(
+  taskId: string,
+  form: TaskFormData,
+  previousNotificationIds: string[]
+): Promise<{ error: string | null }> {
   try {
+    // Cancel old reminders first — the due date may have changed entirely.
+    await cancelTaskReminders(previousNotificationIds);
+
+    const newIds = await scheduleTaskReminders({
+      id: taskId,
+      userId: '',
+      title: form.title.trim(),
+      description: form.description.trim(),
+      frequency: form.frequency,
+      priority: form.priority,
+      dueDate: form.dueDate,
+      completed: false,
+      notificationIds: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
     await updateDoc(doc(db, TASKS_COLLECTION, taskId), {
       title: form.title.trim(),
       description: form.description.trim(),
       frequency: form.frequency,
       priority: form.priority,
       dueDate: form.dueDate,
+      notificationIds: newIds,
       updatedAt: serverTimestamp(),
     });
     return { error: null };
@@ -97,10 +143,19 @@ export async function updateTask(taskId: string, form: TaskFormData): Promise<{ 
   }
 }
 
-export async function toggleTaskCompletion(taskId: string, completed: boolean): Promise<{ error: string | null }> {
+export async function toggleTaskCompletion(
+  taskId: string,
+  completed: boolean,
+  notificationIds: string[]
+): Promise<{ error: string | null }> {
   try {
+    // Completing a task means its reminders are pointless — cancel them.
+    if (completed) {
+      await cancelTaskReminders(notificationIds);
+    }
     await updateDoc(doc(db, TASKS_COLLECTION, taskId), {
       completed,
+      notificationIds: completed ? [] : notificationIds,
       updatedAt: serverTimestamp(),
     });
     return { error: null };
@@ -110,8 +165,9 @@ export async function toggleTaskCompletion(taskId: string, completed: boolean): 
   }
 }
 
-export async function deleteTask(taskId: string): Promise<{ error: string | null }> {
+export async function deleteTask(taskId: string, notificationIds: string[]): Promise<{ error: string | null }> {
   try {
+    await cancelTaskReminders(notificationIds);
     await deleteDoc(doc(db, TASKS_COLLECTION, taskId));
     return { error: null };
   } catch (err) {

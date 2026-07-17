@@ -25,6 +25,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'AddEditTask'>;
 const FREQUENCIES: TaskFrequency[] = ['once', 'daily', 'weekly', 'monthly'];
 const PRIORITIES: TaskPriority[] = ['low', 'medium', 'high'];
 
+
 export default function AddEditTaskScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -42,6 +43,8 @@ export default function AddEditTaskScreen({ route, navigation }: Props) {
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [existingNotificationIds, setExistingNotificationIds] = useState<string[]>([]);
+
   // Reuse subscribeToTasks to grab the one task we're editing, then
   // immediately unsubscribe — avoids a separate getDoc-by-id service function.
   useEffect(() => {
@@ -58,6 +61,8 @@ export default function AddEditTaskScreen({ route, navigation }: Props) {
             priority: existing.priority,
             dueDate: existing.dueDate,
           });
+          setExistingNotificationIds(existing.notificationIds);
+
         }
         setLoading(false);
       },
@@ -68,13 +73,16 @@ export default function AddEditTaskScreen({ route, navigation }: Props) {
 
   async function handleSave() {
     const validationErrors = validateTaskForm(form);
+    const prelimResult = isEditing
+      ? await updateTask(taskId!, form, existingNotificationIds)
+      : await createTask(user?.uid ?? '', form);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
     if (!user) return;
 
     setSaving(true);
     const result = isEditing
-      ? await updateTask(taskId!, form)
+      ? await updateTask(taskId!, form, existingNotificationIds)
       : await createTask(user.uid, form);
     setSaving(false);
 
@@ -93,7 +101,7 @@ export default function AddEditTaskScreen({ route, navigation }: Props) {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          const { error } = await deleteTask(taskId);
+          const { error } = await deleteTask(taskId, existingNotificationIds);
           if (error) {
             Alert.alert('Error', error);
           } else {
