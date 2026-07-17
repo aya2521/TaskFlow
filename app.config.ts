@@ -5,6 +5,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'TaskFlow',
   slug: 'task-flow',
+  ios: {
+    bundleIdentifier: 'com.ayaa.taskflow',
+  },
   android: {
     package: 'com.ayaa.taskflow',
   },
