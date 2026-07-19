@@ -34,8 +34,6 @@ export default function HomeScreen({ navigation }: Props) {
     navigation.navigate('AddEditTask', { taskId: task.id });
   }
 
-
-  
   function handleDelete(task: Task) {
     Alert.alert('Delete task?', `"${task.title}" will be permanently removed.`, [
       { text: 'Cancel', style: 'cancel' },
@@ -63,15 +61,15 @@ export default function HomeScreen({ navigation }: Props) {
       <View style={styles.header}>
         <View>
           <Text style={[styles.title, { color: theme.text }]}>
-           Welcome, {user?.displayName || 'there'}
+            Welcome, {user?.displayName || 'there'}
           </Text>
           <Text style={{ color: theme.textSecondary, marginTop: 2 }}>
             {tasks.length === 0
               ? 'No tasks yet'
               : `${completedCount} of ${tasks.length} completed`}
           </Text>
-       </View>
-       <Pressable onPress={handleLogout} disabled={loggingOut} hitSlop={8}>
+        </View>
+        <Pressable onPress={handleLogout} disabled={loggingOut} hitSlop={8}>
           {loggingOut ? (
             <ActivityIndicator color={theme.text} />
           ) : (
@@ -79,7 +77,34 @@ export default function HomeScreen({ navigation }: Props) {
           )}
         </Pressable>
       </View>
-      <View style={[styles.bottomBar, { backgroundColor: theme.surface, borderColor: theme.border, paddingBottom: insets.bottom + 12}]}>
+
+      {loading ? (
+        <ActivityIndicator color={theme.primary} style={{ marginTop: 40 }} />
+      ) : error ? (
+        <Text style={[styles.errorText]}>{error}</Text>
+      ) : (
+        <FlatList
+          data={sorted}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 140 }}
+          renderItem={({ item }) => (
+            <TaskCard task={item} onToggle={handleToggle} onPress={handlePress} onDelete={handleDelete} />
+          )}
+          ListEmptyComponent={
+            <Text style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 40 }}>
+              Tap + to add your first task.
+            </Text>
+          }
+          extraData={tasks}
+        />
+      )}
+
+      <View
+        style={[
+          styles.bottomBar,
+          { backgroundColor: theme.surface, borderColor: theme.border, paddingBottom: insets.bottom + 12 },
+        ]}
+      >
         <Pressable onPress={() => navigation.navigate('Statistics')} style={styles.bottomBarButton} hitSlop={10}>
           <Text style={styles.bottomBarIcon}>📊</Text>
           <Text style={[styles.bottomBarLabel, { color: theme.textSecondary }]}>Stats</Text>
@@ -97,37 +122,6 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={[styles.bottomBarLabel, { color: theme.textSecondary }]}>Rewards</Text>
         </Pressable>
       </View>
-
-      {loading ? (
-        <ActivityIndicator color={theme.primary} style={{ marginTop: 40 }} />
-      ) : error ? (
-        <Text style={[styles.errorText]}>{error}</Text>
-      ) : (
-        <FlatList
-          data={sorted}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 140 }}
-          renderItem={({ item }) => (
-            <TaskCard task={item} onToggle={handleToggle} onPress={handlePress} onDelete={handleDelete}/>
-          )}
-          onScrollBeginDrag={() => {}}
-          ListEmptyComponent={
-            <Text style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 40 }}>
-              Tap + to add your first task.
-            </Text>
-          }
-          // long-press to delete, kept simple for now
-          extraData={tasks}
-        />
-      )}
-
-      <Pressable
-        style={[styles.fab, { backgroundColor: theme.primary }]}
-        onPress={() => navigation.navigate('AddEditTask')}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </Pressable>
-      
     </View>
   );
 }
@@ -162,7 +156,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    marginTop: -20, // lifts the + button slightly above the bar's row
+    marginTop: -20,
   },
   fabText: { color: '#fff', fontSize: 28, lineHeight: 30 },
 });
