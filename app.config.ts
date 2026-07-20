@@ -3,6 +3,11 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
+  icon: './assets/icon.png',           // 1024x1024
+  splash: {
+    image: './assets/splash.png',
+    backgroundColor: '#6366F1',
+  },
   name: 'TaskFlow',
   slug: 'task-flow',
   ios: {

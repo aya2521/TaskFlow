@@ -70,3 +70,36 @@ export function getCurrentStreak(tasks: Task[]): number {
 
   return streak;
 }
+
+export function getTotalCompleted(tasks: Task[]): number {
+  return tasks.filter((t) => t.completed).length;
+}
+
+// Longest-ever streak, unlike getCurrentStreak which only counts
+// consecutive days ending today.
+export function getLongestStreak(tasks: Task[]): number {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const completionDates = Array.from(
+    new Set(
+      tasks
+        .filter((t) => t.completed)
+        .map((t) => {
+          const d = new Date(t.updatedAt);
+          d.setHours(0, 0, 0, 0);
+          return d.getTime();
+        })
+    )
+  ).sort((a, b) => a - b);
+
+  let longest = 0;
+  let current = 0;
+  let prev: number | null = null;
+
+  for (const date of completionDates) {
+    current = prev !== null && date - prev === dayMs ? current + 1 : 1;
+    longest = Math.max(longest, current);
+    prev = date;
+  }
+
+  return longest;
+}

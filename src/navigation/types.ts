@@ -1,4 +1,5 @@
 export type AuthStackParamList = {
+  Splash: undefined;
   Login: undefined;
   Register: undefined;
 };
@@ -9,9 +10,8 @@ export type AppStackParamList = {
   Rewards: undefined;
   AddEditReward: { rewardId?: string } | undefined;
   Statistics: undefined;
+  Settings: undefined;
+  Account: undefined;
 };
 
-export type RootStackParamList = {
-  Splash: undefined;
-} & AuthStackParamList &
-  AppStackParamList;
+export type RootStackParamList = AuthStackParamList & AppStackParamList;

@@ -69,13 +69,14 @@ export default function HomeScreen({ navigation }: Props) {
               : `${completedCount} of ${tasks.length} completed`}
           </Text>
         </View>
-        <Pressable onPress={handleLogout} disabled={loggingOut} hitSlop={8}>
-          {loggingOut ? (
-            <ActivityIndicator color={theme.text} />
-          ) : (
-            <Text style={{ color: theme.textSecondary }}>Log Out</Text>
-          )}
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+          <Pressable onPress={() => navigation.navigate('Account')} hitSlop={8}>
+            <Text style={{ fontSize: 20 }}>👤</Text>
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate('Settings')} hitSlop={8}>
+            <Text style={{ fontSize: 20 }}>⚙️</Text>
+          </Pressable>
+        </View>
       </View>
 
       {loading ? (
